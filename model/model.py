@@ -4,7 +4,7 @@ from util import featureL2Norm, featureCorrelation
 from FeatureExtractor.ResNet18 import ResNetConv4, ResNetConv5
 
 class NCNet(torch.nn.Module):
-    def __init__(self, kernel_sizes, channels, featExtractor, featExtractorPth, softmaxMutualMatching):
+    def __init__(self, kernel_sizes, channels, featExtractor, featExtractorPth, finetuneFeatExtractor, softmaxMutualMatching):
         super(NCNet, self).__init__()
         
         ## Define feature extractor
@@ -13,7 +13,11 @@ class NCNet(torch.nn.Module):
         elif featExtractor == 'ResNet18Conv5' :
             self.featExtractor = ResNetConv5(featExtractorPth) 
             
-         
+         if finetuneFeatExtractor : 
+             msg = 'Set Feature Extraction validation mode...'
+             print (msg)
+             self.featExtractor.eval()
+
          ## Mutual Matching method
         self.mutualMatch = MutualMatchingSoftMax if softmaxMutualMatching else MutualMatching
         
@@ -40,9 +44,10 @@ class NCNet(torch.nn.Module):
         
         return corr4d
         
+        
 if __name__ == '__main__' : 
     print ('Test NcNet...')
-    model = NCNet(kernel_sizes=[5,5,5], channels=[16,16,1], featExtractor = 'ResNet18Conv4', featExtractorPth = './FeatureExtractor/resnet18.pth', softmaxMutualMatching = True)
+    model = NCNet(kernel_sizes=[5,5,5], channels=[16,16,1], featExtractor = 'ResNet18Conv4', featExtractorPth = './model/FeatureExtractor/resnet18.pth', softmaxMutualMatching = True)
     a = torch.randn(1, 3, 224, 224).cuda()
     b = torch.randn(1, 3, 224, 224).cuda()
     

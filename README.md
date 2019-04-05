@@ -3,7 +3,7 @@ nc-net Re-implementation on **Pytorch 1.0 + Python3.6** (Original implementation
 
 ## Table of Content
 * [Installation](#installation)
-* [Functions Quick Search](#functions-quick-search)
+* [Functions Quick Search](https://github.com/XiSHEN0220/NeighConsensus/blob/master/model/README.md)
 
 
 ## Installation

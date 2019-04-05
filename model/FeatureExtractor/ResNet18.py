@@ -56,6 +56,8 @@ class ResNetConv4(nn.Module):
 		self.layer2 = self._make_layer(BasicBlock, 128, 2, stride=2)
 		self.layer3 = self._make_layer(BasicBlock, 256, 2, stride=2)
 		if init_weight_path : 
+			msg = 'Loading weight from {}'.format(init_weight_path)
+			print (msg)
 			self.init_weight(init_weight_path)
 			
 		
@@ -132,6 +134,8 @@ class ResNetConv5(nn.Module):
 		self.layer3 = self._make_layer(BasicBlock, 256, 2, stride=2)
 		self.layer4 = self._make_layer(BasicBlock, 512, 2, stride=2)
 		if init_weight_path : 
+			msg = 'Loading weight from {}'.format(init_weight_path)
+			print (msg)
 			self.init_weight(init_weight_path)
 			
 		
