@@ -121,7 +121,6 @@ for epoch in range(1, args.nbEpoch + 1) :
         optimizer.step()
         
         trainLoss += loss.item()
-        print (loss.item())
         if i % 30 == 29 : 
             msg = '\nEpoch {:d}, Batch {:d}, Train Loss : {:.4f}'.format(epoch, i + 1, trainLoss / (i + 1))
             print (msg)
