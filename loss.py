@@ -3,7 +3,6 @@ import numpy as np
 
 def weakLossBatch(model, batch, softmaxMM):
 
-    normalize = lambda x : x if softmaxMM else lambda x: torch.nn.functional.softmax(x,1) 
     corr4d = model(batch['source_image'], batch['target_image'])
     
     b, w = corr4d.size()[0], corr4d.size()[2]
@@ -11,14 +10,18 @@ def weakLossBatch(model, batch, softmaxMM):
     corr4dA =corr4d.view(b, w * w, w, w) 
     corr4dB =corr4d.view(b, w, w, w * w).permute(0,3,1,2) 
     
-    normA = normalize(corr4dA)
-    normB = normalize(corr4dB)
+    if not softmaxMM : 
+        normA = torch.nn.functional.softmax(corr4dA,1)
+        normB = torch.nn.functional.softmax(corr4dB,1)
+    else : 
+        normA = corr4dA
+        normB = corr4dB
     
     # compute matching scores    
-    scoreB,_= torch.max(normB,dim=1)
-    scoreA,_= torch.max(scoreA,dim=1)
-    score = torch.mean(scoreA + scoreB)/2
+    scoreB,_= torch.max(normB, dim=1)
+    scoreA,_= torch.max(normA, dim=1)
     
+    score = torch.mean(scoreA + scoreB)/2
     return score
     
 def WeakLoss(model, batch, softmaxMM) : 

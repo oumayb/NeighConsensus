@@ -14,7 +14,7 @@ class NCNet(torch.nn.Module):
             self.featExtractor = ResNetConv5(featExtractorPth) 
             
         if not finetuneFeatExtractor : 
-            msg = 'Set Feature Extraction validation mode...'
+            msg = '\nSet Feature Extraction to validation mode...'
             print (msg)
             self.featExtractor.eval()
 
@@ -28,7 +28,7 @@ class NCNet(torch.nn.Module):
 
     def forward(self, xA, xB):
         ## Extract Feature
-        featA, featB = self.featExtractor(xA), self.featExtractor(xA)
+        featA, featB = self.featExtractor(xA), self.featExtractor(xB)
         
         ## Normalization
         featANorm, featBNorm = featureL2Norm(featA), featureL2Norm(featB)

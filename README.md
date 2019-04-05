@@ -4,6 +4,8 @@ nc-net Re-implementation on **Pytorch 1.0 + Python3.6** (Original implementation
 ## Table of Content
 * [Installation](#installation)
 * [Functions Quick Search](https://github.com/XiSHEN0220/NeighConsensus/blob/master/model/README.md)
+* [Train](#train)
+
 
 
 ## Installation
@@ -15,7 +17,7 @@ cd model/FeatureExtractor
 bash download.sh
 ```
 
-To download Pascal PF Dataset : 
+To download PF Pascal Dataset : 
 
 ``` Bash
 cd data/pf-pascal/
@@ -27,4 +29,9 @@ bash download.sh
 
 For important functions, we provide a quick search [here](https://github.com/XiSHEN0220/NeighConsensus/blob/master/model/README.md)
 
+### Train 
 
+To train on PF-Pascal : 
+``` Bash
+bash demo_train.sh
+``` 

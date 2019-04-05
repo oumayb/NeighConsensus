@@ -44,6 +44,8 @@ print(args)
 torch.manual_seed(1)
 if args.cuda:
     torch.cuda.manual_seed(1)
+else : 
+    raise RuntimeError('CPU Version is not supported yet.')
 np.random.seed(1)
 
 ## Initial Model
@@ -55,7 +57,7 @@ model = NCNet(kernel_sizes=args.neighConsKernel,
               softmaxMutualMatching = args.softmaxMM)
 
 if not args.finetuneFeatExtractor:
-    msg = 'Ignore the gradient for the parameters in the feature extractor'
+    msg = '\nIgnore the gradient for the parameters in the feature extractor'
     print (msg)
     for p in model.featExtractor.parameters(): 
         p.requires_grad=False
@@ -119,21 +121,22 @@ for epoch in range(1, args.nbEpoch + 1) :
         optimizer.step()
         
         trainLoss += loss.item()
-        if i % 100 == 99 : 
-            msg = 'Epoch {:d}, Batch {:d}, Train Loss : {:.4f}'.format(epoch, i + 1, trainLoss / (i + 1))
+        print (loss.item())
+        if i % 30 == 29 : 
+            msg = '\nEpoch {:d}, Batch {:d}, Train Loss : {:.4f}'.format(epoch, i + 1, trainLoss / (i + 1))
             print (msg)
             
     ## Validation 
     trainLoss = trainLoss / len(trainLoader)
-    model.eval()
     
-    for i, batch in enumerate(valLoader) :
+    with torch.no_grad() : 
+        for i, batch in enumerate(valLoader) :
      
-        if args.cuda : 
-            batch['source_image'] = batch['source_image'].cuda()
-            batch['target_image'] = batch['target_image'].cuda()
-        loss = WeakLoss(model, batch, args.softmaxMM)
-        valLoss += loss.item()
+            if args.cuda : 
+                batch['source_image'] = batch['source_image'].cuda()
+                batch['target_image'] = batch['target_image'].cuda()
+            loss = WeakLoss(model, batch, args.softmaxMM)
+            valLoss += loss.item()
         
     valLoss = valLoss / len(valLoader)
     msg = 'Epoch {:d}, Train Loss : {:.4f}, Val Loss : {:.4f}'.format(epoch, trainLoss , valLoss)

@@ -4,7 +4,7 @@ from torch.nn import Module
 from torch.nn.modules.conv import _ConvNd
 from torch.nn.modules.utils import _quadruple
 
-def conv4d(data,filters,bias=None,permute_filters=True,use_half=False):
+def conv4d(data,filters,bias=None,permute_filters=True):
     b,c,h,w,d,t=data.size()
 
     data=data.permute(2,0,1,3,4,5).contiguous() # permute to avoid making contiguous inside loop    
