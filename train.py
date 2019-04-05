@@ -66,6 +66,9 @@ if args.resumePth :
     msg = '\nResume from {}'.format(args.resumePth)
     model.load_state_dict(torch.load(args.resumePth))
     
+if args.cuda : 
+    model.cuda()
+    
 optimizer = optim.Adam(filter(lambda p: p.requires_grad, model.parameters()), lr=args.lr)
 
 ## Train Val DataLoader
@@ -99,13 +102,16 @@ bestValLoss = np.inf
 history = {'TrainLoss' : [], 'ValLoss' : []}
 outHistory = os.path.join(args.outDir, 'history.json')
 outModel = os.path.join(args.outDir, 'netBest.pth')
-
+    
 for epoch in range(1, args.nbEpoch + 1) : 
     trainLoss = 0.
     valLoss = 0.
     for i, batch in enumerate(trainLoader) : 
         
         optimizer.zero_grad()
+        if args.cuda : 
+            batch['source_image'] = batch['source_image'].cuda()
+            batch['target_image'] = batch['target_image'].cuda()
         
         loss = WeakLoss(model, batch, args.softmaxMM)
         loss.backward()
@@ -121,8 +127,11 @@ for epoch in range(1, args.nbEpoch + 1) :
     trainLoss = trainLoss / len(trainLoader)
     model.eval()
     
-    for i, batch in enumerate(valLoader) : 
-        
+    for i, batch in enumerate(valLoader) :
+     
+        if args.cuda : 
+            batch['source_image'] = batch['source_image'].cuda()
+            batch['target_image'] = batch['target_image'].cuda()
         loss = WeakLoss(model, batch, args.softmaxMM)
         valLoss += loss.item()
         
