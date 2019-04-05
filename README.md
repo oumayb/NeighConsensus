@@ -1,5 +1,6 @@
 # NeighConsensus
-nc-net Re-implementation on **Pytorch 1.0 + Python3.6** (Original implementation : https://github.com/ignacio-rocco/ncnet)
+NCNet Re-implementation on **Pytorch 1.0 + Python3.6** (Original implementation : https://github.com/ignacio-rocco/ncnet)
+For more information check out their project [website](https://www.di.ens.fr/willow/research/ncnet/) and their paper on [arXiv](https://arxiv.org/abs/1810.10510).
 
 ## Table of Content
 * [Installation](#installation)
