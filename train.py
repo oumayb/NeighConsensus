@@ -10,6 +10,7 @@ from dataloader import TrainLoader, ValLoader
 from loss import WeakLoss
 import torch.optim as optim
 import json 
+import os 
 
 ## Parameters
 parser = argparse.ArgumentParser(description='Nc-Net Training')
@@ -50,18 +51,20 @@ model = NCNet(kernel_sizes=args.neighConsKernel,
               channels=args.neighConsChannel, 
               featExtractor = args.featExtractor, 
               featExtractorPth = args.featExtractorPth, 
-              finetuneFeatExtractor = args.finetuneFeatExtractor
+              finetuneFeatExtractor = args.finetuneFeatExtractor,
               softmaxMutualMatching = args.softmaxMM)
 
 if not args.finetuneFeatExtractor:
     msg = 'Ignore the gradient for the parameters in the feature extractor'
     print (msg)
-    for p in model.FeatureExtraction.parameters(): 
+    for p in model.featExtractor.parameters(): 
         p.requires_grad=False
         
 
 
 if args.resumePth : 
+    msg = '\nResume from {}'.format(args.resumePth)
+    model.load_state_dict(torch.load(args.resumePth))
     
 optimizer = optim.Adam(filter(lambda p: p.requires_grad, model.parameters()), lr=args.lr)
 
@@ -123,26 +126,21 @@ for epoch in range(1, args.nbEpoch + 1) :
         loss = WeakLoss(model, batch, args.softmaxMM)
         valLoss += loss.item()
         
-    valLoss = valLoss / (len(valLoader)
-    msg = 'Epoch {:d}, Train Loss : {:.4f}, Val Loss : {:.4f}'.format(epoch, trainLoss , valLoss))
+    valLoss = valLoss / len(valLoader)
+    msg = 'Epoch {:d}, Train Loss : {:.4f}, Val Loss : {:.4f}'.format(epoch, trainLoss , valLoss)
     with open(outHistory, 'w') as f :
         json.dump(history, f)
     print (msg)
     if valLoss < bestValLoss : 
         msg = 'Validation Loss Improved from {:.4f} to {:.4f}'.format(bestValLoss, valLoss)
+        print (msg)
         bestValLoss = valLoss
         torch.save(model.state_dict(), outModel)
 
+finalOut = os.path.join(args.outDir, 'netBest{:.3f}.pth'.format(bestValLoss))
+cmd = 'mv {} {}',format(outModel, finalOut)
+os.system(cmd)
         
-
-
-
-
-
-
-
-
-
 
 
 

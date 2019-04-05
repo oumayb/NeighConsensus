@@ -13,10 +13,10 @@ class NCNet(torch.nn.Module):
         elif featExtractor == 'ResNet18Conv5' :
             self.featExtractor = ResNetConv5(featExtractorPth) 
             
-         if finetuneFeatExtractor : 
-             msg = 'Set Feature Extraction validation mode...'
-             print (msg)
-             self.featExtractor.eval()
+        if not finetuneFeatExtractor : 
+            msg = 'Set Feature Extraction validation mode...'
+            print (msg)
+            self.featExtractor.eval()
 
          ## Mutual Matching method
         self.mutualMatch = MutualMatchingSoftMax if softmaxMutualMatching else MutualMatching

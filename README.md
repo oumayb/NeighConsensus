@@ -15,6 +15,14 @@ cd model/FeatureExtractor
 bash download.sh
 ```
 
+To download Pascal PF Dataset : 
+
+``` Bash
+cd data/pf-pascal/
+bash download.sh
+```
+
+
 ### Functions Quick Search
 
 For important functions, we provide a quick search [here](https://github.com/XiSHEN0220/NeighConsensus/blob/master/model/README.md)

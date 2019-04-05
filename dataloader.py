@@ -36,7 +36,7 @@ class ImagePairDataset(Dataset):
 
 def TrainLoader(batchSize, pairCSV, imgDir, trainTransform) : 
     
-    dataloader = DataLoader(ImagePairDataset(pairCSV, imgDir, trainTransform), batch_size=batchSize, shuffle=True, droplast=True)
+    dataloader = DataLoader(ImagePairDataset(pairCSV, imgDir, trainTransform), batch_size=batchSize, shuffle=True, drop_last=True)
     
     return dataloader
 
