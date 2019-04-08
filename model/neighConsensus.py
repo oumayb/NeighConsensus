@@ -60,13 +60,12 @@ def MutualMatchingSoftMax(corr4d):
     # get max
     corr4d_B_softmax = F.softmax(corr4d_B, dim = 1)
     corr4d_A_softmax =F.softmax(corr4d_A, dim = 3)
-
+    
     
     corr4d_B= corr4d_B_softmax.view(corr4d.size())
     corr4d_A= corr4d_A_softmax.view(corr4d.size())
 
-    corr4d=corr4d*(corr4d_A*corr4d_B) # parenthesis are important for symmetric output 
-        
+    corr4d=(corr4d_A*corr4d_B) # parenthesis are important for symmetric output 
     return corr4d
 
     

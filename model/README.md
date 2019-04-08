@@ -14,7 +14,7 @@ Test :
 python model/util.py
 ```
 
-* [Feature Correlation (to obtain corr4d)](https://github.com/XiSHEN0220/NeighConsensus/blob/master/model/util.py#L9) 
+* [Feature Correlation (to obtain corr4d)](https://github.com/XiSHEN0220/NeighConsensus/blob/master/model/util.py#L7) 
 
 Test : 
 ``` Bash
