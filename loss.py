@@ -10,12 +10,8 @@ def weakLossBatch(model, batch, softmaxMM):
     corr4dA =corr4d.view(b, w * w, w, w) 
     corr4dB =corr4d.view(b, w, w, w * w).permute(0,3,1,2) 
     
-    if not softmaxMM : 
-        normA = torch.nn.functional.softmax(corr4dA,1)
-        normB = torch.nn.functional.softmax(corr4dB,1)
-    else : 
-        normA = corr4dA
-        normB = corr4dB
+    normA = torch.nn.functional.softmax(corr4dA,1)
+    normB = torch.nn.functional.softmax(corr4dB,1)
     
     # compute matching scores    
     scoreB,_= torch.max(normB, dim=1)

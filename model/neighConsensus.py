@@ -65,7 +65,7 @@ def MutualMatchingSoftMax(corr4d):
     corr4d_B= corr4d_B_softmax.view(corr4d.size())
     corr4d_A= corr4d_A_softmax.view(corr4d.size())
 
-    corr4d=(corr4d_A*corr4d_B) # parenthesis are important for symmetric output 
+    corr4d=corr4d * (corr4d_A*corr4d_B) # parenthesis are important for symmetric output 
     return corr4d
 
     

@@ -23,6 +23,10 @@ def evalPascal(model, testTransform, df, featExtractor, softmaxMM, imgDir, maxSi
     elif featExtractor == 'ResNet18Conv5' : 
         minNet = 31
         strideNet = 32
+    elif featExtractor == 'ResNet101Conv4' : 
+        minNet = 17
+        strideNet = 16
+    
     
     if saveDir and not os.path.exists(saveDir) : 
         os.mkdir(saveDir)
@@ -31,12 +35,8 @@ def evalPascal(model, testTransform, df, featExtractor, softmaxMM, imgDir, maxSi
     pckRes = np.zeros(nbPair)
 
     for i in tqdm(range(nbPair)) : 
-        IA, IB, xA, yA, xB, yB, refPCK = getIndexMatchGT(df, imgDir, minNet, strideNet, maxSize, i)
+        IA, IB, xA, yA, xB, yB, refPCK, wAOrg, hAOrg, wBOrg, hBOrg = getIndexMatchGT(df, imgDir, minNet, strideNet, maxSize, i)
         
-        ## If no annotations, return -1
-        if len(xA) == 0 : 
-            pckRes[i] = -1
-            continue
         
         ## Plot GT matching
         if saveDir: 
@@ -50,11 +50,11 @@ def evalPascal(model, testTransform, df, featExtractor, softmaxMM, imgDir, maxSi
             corr4D = model(featA, featB)
         _, _, wA, hA, wB, hB = corr4D.size()
         corr4D = corr4D.view(wA * hA, wB * hB)
-        if not softmaxMM : 
-            corr4D = F.softmax(corr4D, dim = 0) * F.softmax(corr4D, dim = 1)
+        
+        #corr4D = F.softmax(corr4D, dim = 0) * F.softmax(corr4D, dim = 1)
         
         ## compute mutual matching
-        '''
+        
         scoreA, posA = corr4D.topk(k=1, dim = 1)
         scoreB, posB = corr4D.topk(k=1, dim = 0)
         top1ScoreA = torch.cuda.FloatTensor(wA * hA, wB * hB).fill_(0).scatter_(1, posA, scoreA)
@@ -62,16 +62,12 @@ def evalPascal(model, testTransform, df, featExtractor, softmaxMM, imgDir, maxSi
 
         top1ScoreMM = (top1ScoreA * top1ScoreB) ** 0.5
         indexMM = top1ScoreMM.nonzero()
-        scoreMM = torch.masked_select(top1ScoreMM, top1ScoreMM > 0)'''
-        scoreB, posB = corr4D.topk(k=1, dim = 0)
-        top1ScoreB = torch.cuda.FloatTensor(wA * hA, wB * hB).fill_(0).scatter_(0, posB, scoreB)
-        top1ScoreMM = top1ScoreB
-        indexMM = top1ScoreMM.nonzero()
         scoreMM = torch.masked_select(top1ScoreMM, top1ScoreMM > 0)
+        
         
         ## Put value in CPU and compute reference grid matching
         indexMM, scoreMM = indexMM.cpu().numpy(), scoreMM.cpu().numpy()
-        posYA, posXA, posYB, posXB  = ((indexMM[:, 0] / hA).astype(int) + 0.5) / float(wA), (indexMM[:, 0] % hA + 0.5) / float(hA), ((indexMM[:, 1] / hB).astype(int) + 0.5) / float(wB), (indexMM[:, 1] % hB + 0.5) / float(hB) 
+        posYA, posXA, posYB, posXB  = ((indexMM[:, 0] / hA).astype(int) + 0.5) / float(wA), (indexMM[:, 0] % hA + 0.5) / float(hA), ((indexMM[:, 1] / hB).astype(int) + 0.5) / float(wB), (indexMM[:, 1] % hB + 0.5) / float(hB)
         
         ## If no mutual matching, precision is 0
         if len(posXA) == 0 :
@@ -85,7 +81,7 @@ def evalPascal(model, testTransform, df, featExtractor, softmaxMM, imgDir, maxSi
         ## compute weight 
         pairwiseDist = ((xB.reshape((-1, 1)) - posXB.reshape((1, -1))) ** 2 +  (yB.reshape((-1, 1)) - posYB.reshape((1, -1))) ** 2)
         pairwiseDist = np.exp(-1 * pairwiseDist /2 /sigma)
-        weight = pairwiseDist * scoreMM.reshape((1, -1))
+        weight = pairwiseDist 
         indexSorted = np.argsort(-1 * weight, axis=1)
         
         ## wrap points
@@ -96,18 +92,18 @@ def evalPascal(model, testTransform, df, featExtractor, softmaxMM, imgDir, maxSi
         
         for j in range(len(xA)) : 
             indexInterPoint = indexSorted[j, : nbWeightPoint]
-            interPosXA, interPosYA, interScore = posXA[indexInterPoint], posYA[indexInterPoint], scoreMM[indexInterPoint]
+            interPosXA, interPosYA, interPosXB, interPosYB, interScore = posXA[indexInterPoint], posYA[indexInterPoint], posXB[indexInterPoint], posYB[indexInterPoint], scoreMM[indexInterPoint]
             interWeight = weight[j, indexInterPoint]
-        
+            
             interWeight = interWeight / interWeight.sum()
-            wrapPointxA[j], wrapPointyA[j], wrapScore[j] = np.sum(interWeight * interPosXA), np.sum(interWeight * interPosYA), np.sum(interWeight * interScore)
-
+            wrapPointxA[j], wrapPointyA[j], wrapScore[j] = np.sum(interWeight * (interPosXA + xB[j] - interPosXB)), np.sum(interWeight * (interPosYA + yB[j] - interPosYB)), np.sum(interWeight * interScore)
+            
         if saveDir : 
             outPath = os.path.join(saveDir, 'KeyPointMatch{:d}.jpg'.format(i))
             plotCorres(IA, IB, wrapPointxA, wrapPointyA, xB, yB, lineColor = 'blue')
         
         ## PCK Metric
-        prec = np.mean(((wrapPointxA - xA) ** 2 + (wrapPointyA - yA) ** 2) ** 0.5 < refPCK * alpha)
+        prec = np.mean(((wrapPointxA * wAOrg - xA * wAOrg) ** 2 + (wrapPointyA * hAOrg - yA * hAOrg) ** 2) ** 0.5 <= refPCK * alpha)
         pckRes[i] = prec
     return pckRes
 
@@ -124,13 +120,13 @@ if __name__ == '__main__' :
     parser.add_argument('--featExtractorPth', type=str, default = 'model/FeatureExtractor/resnet18.pth', help='feature extractor path')
     parser.add_argument('--imgDir', type=str, default = 'data/pf-pascal/JPEGImages/', help='image Directory')
     parser.add_argument('--testCSV', type=str, default = 'data/pf-pascal/test.csv', help='train csv')
-    parser.add_argument('--maxSize', type=int, default = 1000, help='max size in the test image')
+    parser.add_argument('--maxSize', type=int, default = 500, help='max size in the test image')
 
 
     ## evaluation parameters
     parser.add_argument('--neighConsKernel', nargs='+', type=int, default=[5,5,5], help='kernels sizes in neigh. cons.')
     parser.add_argument('--neighConsChannel', nargs='+', type=int, default=[16,16,1], help='channels in neigh. cons')
-    parser.add_argument('--featExtractor', type=str, default='ResNet18Conv4', choices=['ResNet18Conv4', 'ResNet18Conv5'], help='feature extractor')
+    parser.add_argument('--featExtractor', type=str, default='ResNet18Conv4', choices=['ResNet18Conv4', 'ResNet18Conv5', 'ResNet101Conv4'], help='feature extractor')
     parser.add_argument('--softmaxMM', action='store_true', help='whether use softmax Mutual Matching')
     parser.add_argument('--scoreTH', type=float, default=0.5, help='threshold of score to visualize matched grid')
     parser.add_argument('--sigma', type=float, default=0.01, help='sigma in the spatial term to compute weight')
@@ -152,10 +148,14 @@ if __name__ == '__main__' :
 
     msg = '\nResume from {}'.format(args.resumePth)
     print (msg)
-    model.load_state_dict(torch.load(args.resumePth))
-        
-    model.cuda()
+    modelParam = torch.load(args.resumePth)
+    if 'state_dict' in list(modelParam.keys()) : 
+        modelParam = modelParam['state_dict']
+    for key in list(modelParam.keys()) : 
+        modelParam[key.replace('FeatureExtraction.model', 'featExtractor').replace('NeighConsensus.conv', 'NeighConsensus.model')] = modelParam[key]
+    model.load_state_dict(modelParam, strict=False)
     model.eval()
+    model.cuda()
         
 
     ## Train Val DataLoader

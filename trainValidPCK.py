@@ -31,11 +31,11 @@ parser.add_argument('--imgSize', type=int, default = 400, help='max size in the 
 ## learning parameter
 parser.add_argument('--lr', type=float, default=5e-4, help='learning rate')
 parser.add_argument('--batchSize', type=int, default=16, help='batch size')
-parser.add_argument('--nbEpoch', type=int, default=30, help='number of training epochs')
+parser.add_argument('--nbEpoch', type=int, default=5, help='number of training epochs')
 parser.add_argument('--neighConsKernel', nargs='+', type=int, default=[5,5,5], help='kernels sizes in neigh. cons.')
 parser.add_argument('--neighConsChannel', nargs='+', type=int, default=[16,16,1], help='channels in neigh. cons')
 parser.add_argument('--finetuneFeatExtractor', action='store_true', help='whether fine-tuning feature extractor')
-parser.add_argument('--featExtractor', type=str, default='ResNet18Conv4', choices=['ResNet18Conv4', 'ResNet18Conv5'], help='feature extractor')
+parser.add_argument('--featExtractor', type=str, default='ResNet18Conv4', choices=['ResNet18Conv4', 'ResNet18Conv5', 'ResNet101Conv4'], help='feature extractor')
 parser.add_argument('--cuda', action='store_true', help='GPU setting')
 parser.add_argument('--softmaxMM', action='store_true', help='whether use softmax Mutual Matching')
 parser.add_argument('--scoreTH', type=float, default=0.5, help='threshold of score to visualize matched grid')

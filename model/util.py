@@ -2,7 +2,9 @@ import torch
 import torch.nn.functional as F
 
 def featureL2Norm(feature):
-    return F.normalize(feature, p=2, dim=1, eps=1e-6)
+    epsilon = 1e-6
+    norm = torch.pow(torch.sum(torch.pow(feature,2),1)+epsilon,0.5).unsqueeze(1).expand_as(feature)
+    return torch.div(feature,norm)
     
 def featureCorrelation(feature_A, feature_B) : 
     
